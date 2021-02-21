@@ -39,10 +39,9 @@ void CircuitReader::parseAndEval(char* arithFilepath, char* inputsFilepath) {
 	if (!arithfs.good()) {
 		LOGD("Unable to open circuit file %s \n", arithFilepath);
 		exit(-1);
+	} else{
+        	LOGD("arith ok\n");
 	}
-	else{
-        LOGD("arith ok\n");
-    }
 
 	getline(arithfs, line);
 
@@ -52,6 +51,9 @@ void CircuitReader::parseAndEval(char* arithFilepath, char* inputsFilepath) {
 		LOGD("File Format Does not Match\n");
 		exit(-1);
 	}
+
+	variableMap.resize(numWires);
+	zeropMap.resize(numWires);
 
 	wireValues.resize(numWires);
 	wireUseCounters.resize(numWires);
@@ -224,12 +226,9 @@ void CircuitReader::parseAndEval(char* arithFilepath, char* inputsFilepath) {
  	LOGD("Parsing and Evaluating the circuit done");
 }
 
-void CircuitReader::constructCircuit(char* arithFilepath) {
-
-
-
+void CircuitReader::constructCircuit(char* arithFilepath) 
+{
 	LOGD("Translating Constraints ... ");
-
 
 	#ifndef NO_PROCPS
 	LOGD("NO PROCPS");
@@ -259,8 +258,9 @@ void CircuitReader::constructCircuit(char* arithFilepath) {
 	}
 
 	char type[200];
-	char* inputStr;
-	char* outputStr;
+	//char* inputStr;
+	//char* outputStr;
+	char inputStr[2047], outputStr[2047];
 	string line;
 	unsigned int numGateInputs, numGateOutputs;
 
@@ -287,17 +287,16 @@ void CircuitReader::constructCircuit(char* arithFilepath) {
 		if (line.length() == 0) {
 			continue;
 		}
-		inputStr = new char[line.size()];
-		outputStr = new char[line.size()];
+		//inputStr = new char[line.size()];
+		//outputStr = new char[line.size()];
 
-		if (5
-				== sscanf(line.c_str(), "%s in %d <%[^>]> out %d <%[^>]>", type,
+		if (5 == sscanf(line.c_str(), "%s in %d <%[^>]> out %d <%[^>]>", type,
 						&numGateInputs, inputStr, &numGateOutputs, outputStr)) {
 			if (strcmp(type, "add") == 0) {
-				assert(numGateOutputs == 1);
+				//assert(numGateOutputs == 1);
 				handleAddition(inputStr, outputStr);
 			} else if (strcmp(type, "mul") == 0) {
-				assert(numGateInputs == 2 && numGateOutputs == 1);
+				//assert(numGateInputs == 2 && numGateOutputs == 1);
 				addMulConstraint(inputStr, outputStr);
 			} else if (strcmp(type, "xor") == 0) {
 				assert(numGateInputs == 2 && numGateOutputs == 1);
@@ -306,13 +305,14 @@ void CircuitReader::constructCircuit(char* arithFilepath) {
 				assert(numGateInputs == 2 && numGateOutputs == 1);
 				addOrConstraint(inputStr, outputStr);
 			} else if (strcmp(type, "assert") == 0) {
+				//LOGD("assert %d\n", outWires[0]);
 				assert(numGateInputs == 2 && numGateOutputs == 1);
 				addAssertionConstraint(inputStr, outputStr);
 			} else if (strstr(type, "const-mul-neg-")) {
-				assert(numGateInputs == 1 && numGateOutputs == 1);
+				//assert(numGateInputs == 1 && numGateOutputs == 1);
 				handleMulNegConst(type, inputStr, outputStr);
 			} else if (strstr(type, "const-mul-")) {
-				assert(numGateInputs == 1 && numGateOutputs == 1);
+				//assert(numGateInputs == 1 && numGateOutputs == 1);
 				handleMulConst(type, inputStr, outputStr);
 			} else if (strcmp(type, "zerop") == 0) {
 				assert(numGateInputs == 1 && numGateOutputs == 2);
@@ -329,8 +329,8 @@ void CircuitReader::constructCircuit(char* arithFilepath) {
 		} else {
 //			assert(0);
 		}
-		delete[] inputStr;
-		delete[] outputStr;
+		//delete[] inputStr;
+		//delete[] outputStr;
 		clean();
 	}
 
@@ -351,9 +351,9 @@ void CircuitReader::constructCircuit(char* arithFilepath) {
 void CircuitReader::mapValuesToProtoboard() {
 
 	int zeropGateIndex = 0;
-	for (WireMap::iterator iter = variableMap.begin();
-			iter != variableMap.end(); ++iter) {
-		Wire wireId = iter->first;
+	//for (WireMap::iterator iter = variableMap.begin(); iter != variableMap.end(); ++iter) {
+	for (int wireId = variableMap.begin(); wireId < variableMap.size(); ++wireId) {
+		//Wire wireId = iter->first;
 		pb->val(*variables[variableMap[wireId]]) = wireValues[wireId];
 		if (zeropMap.find(wireId) != zeropMap.end()) {
 			LinearCombination l = *zeroPwires[zeropGateIndex++];

@@ -38,7 +38,42 @@ typedef unsigned int Wire;
 
 typedef libff::Fr<libff::default_ec_pp> FieldT;
 typedef ::std::shared_ptr<LinearCombination> LinearCombinationPtr;
-typedef ::std::map<Wire, unsigned int> WireMap;
+//typedef ::std::map<Wire, unsigned int> WireMap;
+
+class WireMap {
+public:
+	WireMap() { value = 0;}
+	void resize(int theSize) {
+		mSize = theSize;
+		value = new Wire[theSize];	
+	
+		for(int i=0; i<mSize; i++)
+			value[i] = -1;	
+	}
+
+	Wire& operator[] (int index) {
+		return value[index];
+	}
+
+	Wire& find(int index) {
+		return value[index];
+	}
+
+	void clear() {
+		delete[] value;
+		value = NULL;
+	}
+	
+	Wire size() { return mSize; }
+
+	static Wire end() { return -1; }
+
+	static Wire begin() { return 0; }
+private:
+	Wire * value;
+	int mSize;
+};
+
 
 #define ADD_OPCODE 1
 #define MUL_OPCODE 2
